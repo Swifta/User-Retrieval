@@ -115,25 +115,22 @@ if (isset($access_token)){
                
             </div>
                 
-            <label style="float: left;width: 200px;">Domain name: </label>
-            <input type="text" name="dom"style="float: left; margin-left: 20px;width: 200px;"/>
+            <label style="float: left;width: 100px;">Domain name: </label>
+            <input type="text" name="dom"style="float: left; margin-left: 20px;width: 440px;"/>
             <br><br>
-            <label for="file">Query: </label>
-                <select id="menu" name="field" style="float: left; margin-left: 20px;"/>
+            <label style="float: left;width: 100px;">Query: </label>
+                <select id="menu" name="field" style="float: left; margin-left: 20px;width: 100px;"/>
                     <option>None</option>
                     <option>name</option>
                     <option>givenName</option>
                     <option>familyName</option>
                     <option>email</option>
-                    <option>orgName</option>
                     <option>orgUnitPath</option>
                     
                 </select>
-                <select id="menu" name="operator" style="float: left; margin-left: 20px;"/>
-                    <option>Contains</option>
-                    <option>Equals</option>
-                </select>
-                <input type="text" name="dom"style="float: left; margin-left: 20px;width: 200px;"/>
+            <label  style="float: left; margin-left: 20px;width: 60px;">Contains</label>
+                    
+                <input type="text" name="value"style="float: left; margin-left: 20px;width: 240px;"/>
             <br><br>
                 <input type="submit" name="submit" value="Submit">
         </form>
@@ -141,21 +138,26 @@ if (isset($access_token)){
     
 <?php
     if(isset($_REQUEST['submit'])){
-            
+        
+               $dom = $_POST['dom'];
+               $field = $_POST['field'];
+              // $operator = $_POST['operator'];
+               $value = $_POST['value'];
+               
              $access = $_SESSION['access_token'];
              
                                         //$urla = 'https://apps-apis.google.com/a/feeds/calendar/resource/2.0/'.$dom.'?alt=json';
                                         $urla ="https://www.googleapis.com/admin/directory/v1/users";
                                         
-                                        $urla2 ="?domain=afrintegra.com";
+                                        $urla2 ="?domain=$dom";
                                         $urla2 .="&maxResults=50";
                                         $urla2 .="&orderBy=familyName";
                                         $urla2 .= "&sortOrder=ascending";
-                                        $urla2 .="&query=".urlencode("orgDescription='Hello'");
+                                        $urla2 .="&query=".urlencode("$field='$value'");
                                         $urla .= $urla2;
                                        
                                         $cha = curl_init($urla);
-                                         echo $urla;
+                                         //echo $urla;
                                         curl_setopt($cha, CURLOPT_RETURNTRANSFER, true);
                                         curl_setopt ( $cha , CURLOPT_VERBOSE , 1 );
                                         curl_setopt ( $cha , CURLOPT_HEADER , 1 );
@@ -173,7 +175,7 @@ if (isset($access_token)){
                                       // curl_setopt($cha, CURLOPT_POSTFIELDS, $data3);
 
                                            $response = curl_exec($cha);
-                                           echo $response;
+                                           //echo $response;
                                          
                     $error = curl_error($cha);
                     $result = array( 'header' => '', 
@@ -201,14 +203,80 @@ if (isset($access_token)){
                        // echo $xmll['user'][0]['primaryEmail'];
 
                     if($result['http_code']=="200"){
+                        $csv_hdr = "S/N, Email, Firstname, Lastname, Organization";
+                        $csv_output="";
+                        
+                        ?>
+                            <br>
+                            <table align="center" border="1" cellpadding="0" cellspacing="0" width="100%">
+                            <tr class="dataTableRow">
+                                    <td class="main" width="3%"><b>S/N</b></td>
+                                    <td class="main" width="10%"><b>Email</b></td>
+                                    <td class="main" width="10%"><b>Firstname</b></td>
+                                    <td class="main" width="10%"><b>Lastname</b></td>
+                                    <td class="main" width="10%"><b>Organization</b></td>
+                                                               
+                                   
+                            </tr>
+                        <?Php
 
                                                     
                        $val =  count($xmll['users']);
                        for($i=0;$i<$val;$i++){
                            
-                          echo $xmll['users'][$i]['primaryEmail'].','.$xmll['users'][$i]['name']['givenName'].','.$xmll['users'][$i]['name']['familyName'].'<br>';
+                           ?>
+                               <tr>
+                                   
+            <td align="left" valign="center">
+            <br><?php echo $i . "</b>"; 
+            $csv_output .= $i. ", "; //ensure the last column entry starts a new line ?>
+            </td>
+                                   
+            <td align="left" valign="center">
+            <br><?php echo $xmll['users'][$i]['primaryEmail']; //here we are displaying the contents of the field or column in our rows array for a particular row.
+            //while we're at it we might as well store the data in comma separated values (csv) format in the csv_output variable for later use.
+            $csv_output .= $xmll['users'][$i]['primaryEmail'] . ", ";?>
+            </td>
+            <td align="left" valign="center">
+            <br><?php echo $xmll['users'][$i]['name']['givenName']; //repeat for all remaining fields or columns we have headings for...
+            $csv_output .= $xmll['users'][$i]['name']['givenName'] . ", ";?>
+            </td>
+            <td align="left" valign="center">
+            <br><?php echo $xmll['users'][$i]['name']['familyName']; //repeat for all remaining fields or columns we have headings for...
+            $csv_output .= $xmll['users'][$i]['name']['familyName'] . ", ";?>
+            </td>
+               
+            <td align="left" valign="center">
+            <br><?php 
+                    $organ = preg_replace('/\//',' ',$xmll['users'][$i]['orgUnitPath']);
+                    echo $organ; //repeat for all remaining fields or columns we have headings for...
+            $csv_output .= $organ . "\n";?>
+            </td>
+            
+            
+        </tr>
+                                
+         <?php
+                           
+                          //echo $xmll['users'][$i]['primaryEmail'].','.$xmll['users'][$i]['name']['givenName'].','.$xmll['users'][$i]['name']['familyName'].'<br>';
                                                        
                        }
+                       
+                       
+                       ?>
+                                </table> 
+                                
+                                <br>
+                                <center>
+                                <form name="export" action="export.php" method="post">
+                                    <input type="submit" value="Export table to CSV">
+                                    <input type="hidden" value="<?php echo $csv_hdr; ?>" name="csv_hdr">
+                                    <input type="hidden" value="<?php echo $csv_output; ?>" name="csv_output">
+                                </form>
+                                </center>
+                                 </br>
+                                
+                        <?php
                           
                          //echo $val;    
                         }else{
