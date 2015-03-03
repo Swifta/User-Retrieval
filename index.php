@@ -228,8 +228,8 @@ if (isset($access_token)){
                                <tr>
                                    
             <td align="left" valign="center">
-            <br><?php echo $i . "</b>"; 
-            $csv_output .= $i. ", "; //ensure the last column entry starts a new line ?>
+            <br><?php echo $i+1 . "</b>"; 
+            $csv_output .= $i+1 . ", "; //ensure the last column entry starts a new line ?>
             </td>
                                    
             <td align="left" valign="center">
